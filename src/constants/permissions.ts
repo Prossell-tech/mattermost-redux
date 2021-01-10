@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-export default {
+
+const values = {
     INVITE_USER: 'invite_user',
     ADD_USER_TO_TEAM: 'add_user_to_team',
     USE_SLASH_COMMANDS: 'use_slash_commands',
@@ -10,6 +11,8 @@ export default {
     CREATE_PRIVATE_CHANNEL: 'create_private_channel',
     MANAGE_PUBLIC_CHANNEL_MEMBERS: 'manage_public_channel_members',
     MANAGE_PRIVATE_CHANNEL_MEMBERS: 'manage_private_channel_members',
+    READ_PUBLIC_CHANNEL_GROUPS: 'read_public_channel_groups',
+    READ_PRIVATE_CHANNEL_GROUPS: 'read_private_channel_groups',
     ASSIGN_SYSTEM_ADMIN_ROLE: 'assign_system_admin_role',
     MANAGE_ROLES: 'manage_roles',
     MANAGE_TEAM_ROLES: 'manage_team_roles',
@@ -26,6 +29,8 @@ export default {
     LIST_TEAM_CHANNELS: 'list_team_channels',
     JOIN_PUBLIC_CHANNELS: 'join_public_channels',
     DELETE_PUBLIC_CHANNEL: 'delete_public_channel',
+    CONVERT_PUBLIC_CHANNEL_TO_PRIVATE: 'convert_public_channel_to_private',
+    CONVERT_PRIVATE_CHANNEL_TO_PUBLIC: 'convert_private_channel_to_public',
     DELETE_PRIVATE_CHANNEL: 'delete_private_channel',
     EDIT_OTHER_USERS: 'edit_other_users',
     READ_CHANNEL: 'read_channel',
@@ -71,6 +76,42 @@ export default {
     DEMOTE_TO_GUEST: 'demote_to_guest',
     USE_CHANNEL_MENTIONS: 'use_channel_mentions',
     USE_GROUP_MENTIONS: 'use_group_mentions',
+    READ_OTHER_USERS_TEAMS: 'read_other_users_teams',
+    EDIT_BRAND: 'edit_brand',
+    READ_JOBS: 'read_jobs',
+
+    SYSCONSOLE_READ_ABOUT: 'sysconsole_read_about',
+    SYSCONSOLE_WRITE_ABOUT: 'sysconsole_write_about',
+    SYSCONSOLE_READ_BILLING: 'sysconsole_read_billing',
+    SYSCONSOLE_WRITE_BILLING: 'sysconsole_write_billing',
+    SYSCONSOLE_READ_REPORTING: 'sysconsole_read_reporting',
+    SYSCONSOLE_WRITE_REPORTING: 'sysconsole_write_reporting',
+    SYSCONSOLE_READ_USERMANAGEMENT_USERS: 'sysconsole_read_user_management_users',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_USERS: 'sysconsole_write_user_management_users',
+    SYSCONSOLE_READ_USERMANAGEMENT_GROUPS: 'sysconsole_read_user_management_groups',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS: 'sysconsole_write_user_management_groups',
+    SYSCONSOLE_READ_USERMANAGEMENT_TEAMS: 'sysconsole_read_user_management_teams',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS: 'sysconsole_write_user_management_teams',
+    SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS: 'sysconsole_read_user_management_channels',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS: 'sysconsole_write_user_management_channels',
+    SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS: 'sysconsole_read_user_management_permissions',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS: 'sysconsole_write_user_management_permissions',
+    SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES: 'sysconsole_read_user_management_system_roles',
+    SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES: 'sysconsole_write_user_management_system_roles',
+    SYSCONSOLE_READ_ENVIRONMENT: 'sysconsole_read_environment',
+    SYSCONSOLE_WRITE_ENVIRONMENT: 'sysconsole_write_environment',
+    SYSCONSOLE_READ_SITE: 'sysconsole_read_site',
+    SYSCONSOLE_WRITE_SITE: 'sysconsole_write_site',
+    SYSCONSOLE_READ_AUTHENTICATION: 'sysconsole_read_authentication',
+    SYSCONSOLE_WRITE_AUTHENTICATION: 'sysconsole_write_authentication',
+    SYSCONSOLE_READ_PLUGINS: 'sysconsole_read_plugins',
+    SYSCONSOLE_WRITE_PLUGINS: 'sysconsole_write_plugins',
+    SYSCONSOLE_READ_INTEGRATIONS: 'sysconsole_read_integrations',
+    SYSCONSOLE_WRITE_INTEGRATIONS: 'sysconsole_write_integrations',
+    SYSCONSOLE_READ_COMPLIANCE: 'sysconsole_read_compliance',
+    SYSCONSOLE_WRITE_COMPLIANCE: 'sysconsole_write_compliance',
+    SYSCONSOLE_READ_EXPERIMENTAL: 'sysconsole_read_experimental',
+    SYSCONSOLE_WRITE_EXPERIMENTAL: 'sysconsole_write_experimental',
 
     CHANNEL_MODERATED_PERMISSIONS: {
         CREATE_POST: 'create_post',
@@ -80,4 +121,111 @@ export default {
     },
     MANAGE_BOTS: 'manage_bots',
     MANAGE_OTHERS_BOTS: 'manage_others_bots',
+    SYSCONSOLE_READ_PERMISSIONS: [] as string[],
+    SYSCONSOLE_WRITE_PERMISSIONS: [] as string[],
+    MANAGE_SHARED_CHANNELS: 'manage_shared_channels',
+    MANAGE_REMOTE_CLUSTERS: 'manage_remote_clusters',
+    SYSCONSOLE_ANCILLARY_PERMISSIONS: {} as Record<string, string[]>,
 };
+
+values.SYSCONSOLE_READ_PERMISSIONS = [
+    values.SYSCONSOLE_READ_ABOUT,
+    values.SYSCONSOLE_READ_BILLING,
+    values.SYSCONSOLE_READ_REPORTING,
+    values.SYSCONSOLE_READ_USERMANAGEMENT_USERS,
+    values.SYSCONSOLE_READ_USERMANAGEMENT_GROUPS,
+    values.SYSCONSOLE_READ_USERMANAGEMENT_TEAMS,
+    values.SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS,
+    values.SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS,
+    values.SYSCONSOLE_READ_ENVIRONMENT,
+    values.SYSCONSOLE_READ_SITE,
+    values.SYSCONSOLE_READ_AUTHENTICATION,
+    values.SYSCONSOLE_READ_PLUGINS,
+    values.SYSCONSOLE_READ_INTEGRATIONS,
+    values.SYSCONSOLE_READ_COMPLIANCE,
+    values.SYSCONSOLE_READ_EXPERIMENTAL,
+];
+
+values.SYSCONSOLE_WRITE_PERMISSIONS = [
+    values.SYSCONSOLE_WRITE_ABOUT,
+    values.SYSCONSOLE_WRITE_BILLING,
+    values.SYSCONSOLE_WRITE_REPORTING,
+    values.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
+    values.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS,
+    values.SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS,
+    values.SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS,
+    values.SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS,
+    values.SYSCONSOLE_WRITE_ENVIRONMENT,
+    values.SYSCONSOLE_WRITE_SITE,
+    values.SYSCONSOLE_WRITE_AUTHENTICATION,
+    values.SYSCONSOLE_WRITE_PLUGINS,
+    values.SYSCONSOLE_WRITE_INTEGRATIONS,
+    values.SYSCONSOLE_WRITE_COMPLIANCE,
+    values.SYSCONSOLE_WRITE_EXPERIMENTAL,
+];
+
+values.SYSCONSOLE_ANCILLARY_PERMISSIONS = {
+    [values.SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS]: [
+        values.READ_PUBLIC_CHANNEL,
+        values.READ_CHANNEL,
+        values.READ_PUBLIC_CHANNEL_GROUPS,
+        values.READ_PRIVATE_CHANNEL_GROUPS,
+    ],
+    [values.SYSCONSOLE_READ_USERMANAGEMENT_USERS]: [
+        values.READ_OTHER_USERS_TEAMS,
+    ],
+    [values.SYSCONSOLE_READ_USERMANAGEMENT_TEAMS]: [
+        values.LIST_PRIVATE_TEAMS,
+        values.LIST_PUBLIC_TEAMS,
+        values.VIEW_TEAM,
+    ],
+    [values.SYSCONSOLE_READ_ENVIRONMENT]: [
+        values.READ_JOBS,
+    ],
+    [values.SYSCONSOLE_READ_AUTHENTICATION]: [
+        values.READ_JOBS,
+    ],
+    [values.SYSCONSOLE_READ_REPORTING]: [
+        values.VIEW_TEAM,
+    ],
+    [values.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS]: [
+        values.EDIT_OTHER_USERS,
+        values.DEMOTE_TO_GUEST,
+        values.PROMOTE_GUEST,
+    ],
+    [values.SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS]: [
+        values.MANAGE_TEAM,
+        values.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
+        values.MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+        values.MANAGE_PRIVATE_CHANNEL_MEMBERS,
+        values.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+        values.DELETE_PRIVATE_CHANNEL,
+        values.DELETE_PUBLIC_CHANNEL,
+        values.MANAGE_CHANNEL_ROLES,
+        values.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
+        values.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
+    ],
+    [values.SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS]: [
+        values.MANAGE_TEAM,
+        values.MANAGE_TEAM_ROLES,
+        values.REMOVE_USER_FROM_TEAM,
+        values.JOIN_PRIVATE_TEAMS,
+        values.JOIN_PUBLIC_TEAMS,
+        values.ADD_USER_TO_TEAM,
+    ],
+    [values.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]: [
+        values.MANAGE_TEAM,
+        values.MANAGE_PRIVATE_CHANNEL_MEMBERS,
+        values.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+        values.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
+        values.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
+    ],
+    [values.SYSCONSOLE_WRITE_ENVIRONMENT]: [
+        values.MANAGE_JOBS,
+    ],
+    [values.SYSCONSOLE_WRITE_SITE]: [
+        values.EDIT_BRAND,
+    ],
+};
+
+export default values;

@@ -6,6 +6,7 @@ import {ClusterInfo, AnalyticsRow} from 'types/admin';
 import {Audit} from 'types/audits';
 import {UserAutocomplete, AutocompleteSuggestion} from 'types/autocomplete';
 import {Bot, BotPatch} from 'types/bots';
+import {Product, Subscription, CloudCustomer, Address, CloudCustomerPatch, Invoice} from 'types/cloud';
 import {ChannelCategory, OrderedChannelCategories} from 'types/channel_categories';
 import {
     Channel,
@@ -89,13 +90,14 @@ import {
     GetFilteredUsersStatsOpts,
 } from 'types/users';
 import {$ID, RelationOneToOne} from 'types/utilities';
+import {ProductNotices} from 'types/product_notices';
 
 import {buildQueryString, isMinimumServerVersion} from 'utils/helpers';
 import {cleanUrlForLogging} from 'utils/sentry';
 import {isSystemAdmin} from 'utils/user_utils';
 
 import fetch from './fetch_etag';
-import {rudderAnalytics} from './rudder';
+import {TelemetryHandler} from './telemetry';
 
 const FormData = require('form-data');
 const HEADER_AUTH = 'Authorization';
@@ -125,12 +127,13 @@ export default class Client4 {
     userId = '';
     diagnosticId = '';
     includeCookies = true;
-    isRudderKeySet = false;
     translations = {
         connectionError: 'There appears to be a problem with your internet connection.',
         unknownError: 'We received an unexpected status code from the server.',
     };
     userRoles?: string;
+
+    telemetryHandler?: TelemetryHandler;
 
     getUrl() {
         return this.url;
@@ -187,8 +190,8 @@ export default class Client4 {
         this.diagnosticId = diagnosticId;
     }
 
-    enableRudderEvents() {
-        this.isRudderKeySet = true;
+    setTelemetryHandler(telemetryHandler?: TelemetryHandler) {
+        this.telemetryHandler = telemetryHandler;
     }
 
     getServerVersion() {
@@ -383,6 +386,14 @@ export default class Client4 {
         return `${this.getGroupsRoute()}/${groupID}`;
     }
 
+    getNoticesRoute() {
+        return `${this.getBaseRoute()}/system/notices`;
+    }
+
+    getCloudRoute() {
+        return `${this.getBaseRoute()}/cloud`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -544,7 +555,7 @@ export default class Client4 {
     getKnownUsers = () => {
         this.trackEvent('api', 'api_get_known_users');
 
-        return this.doFetch<$ID<UserProfile>[]>(
+        return this.doFetch<Array<$ID<UserProfile>>>(
             `${this.getUsersRoute()}/known`,
             {method: 'get'},
         );
@@ -749,7 +760,7 @@ export default class Client4 {
         );
     };
 
-    getProfilesInChannel = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '') => {
+    getProfilesInChannel = (channelId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '', options: {active?: boolean} = {}) => {
         this.trackEvent('api', 'api_profiles_get_in_channel', {channel_id: channelId});
 
         const serverVersion = this.getServerVersion();
@@ -760,7 +771,7 @@ export default class Client4 {
             queryStringObj = {in_channel: channelId, page, per_page: perPage};
         }
         return this.doFetch<UserProfile[]>(
-            `${this.getUsersRoute()}${buildQueryString(queryStringObj)}`,
+            `${this.getUsersRoute()}${buildQueryString({...queryStringObj, ...options})}`,
             {method: 'get'},
         );
     };
@@ -1663,7 +1674,7 @@ export default class Client4 {
         );
     };
 
-    patchChannelModerations = (channelId: string, channelModerationsPatch: Array<ChannelModerationPatch>) => {
+    patchChannelModerations = (channelId: string, channelModerationsPatch: ChannelModerationPatch[]) => {
         return this.doFetch<ChannelModeration[]>(
             `${this.getChannelRoute(channelId)}/moderations/patch`,
             {method: 'put', body: JSON.stringify(channelModerationsPatch)},
@@ -2103,6 +2114,30 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    upgradeToEnterprise = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise`,
+            {method: 'post'},
+        );
+    }
+
+    upgradeToEnterpriseStatus = async () => {
+        return this.doFetch<{
+            percentage: number;
+            error: string | null;
+        }>(
+            `${this.getBaseRoute()}/upgrade_to_enterprise/status`,
+            {method: 'get'},
+        );
+    }
+
+    restartServer = async () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/restart`,
+            {method: 'post'},
+        );
+    }
 
     logClientError = (message: string, level = 'ERROR') => {
         const url = `${this.getBaseRoute()}/logs`;
@@ -2619,7 +2654,7 @@ export default class Client4 {
         );
     };
 
-    createComplianceReport = (job: Job) => {
+    createComplianceReport = (job: Partial<Compliance>) => {
         return this.doFetch<Compliance>(
             `${this.getBaseRoute()}/compliance/reports`,
             {method: 'post', body: JSON.stringify(job)},
@@ -2746,6 +2781,32 @@ export default class Client4 {
         );
     };
 
+    uploadPublicLdapCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/certificate/public`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
+    uploadPrivateLdapCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/certificate/private`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
     uploadIdpSamlCertificate = (fileData: File) => {
         const formData = new FormData();
         formData.append('certificate', fileData);
@@ -2769,6 +2830,20 @@ export default class Client4 {
     deletePrivateSamlCertificate = () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/saml/certificate/private`,
+            {method: 'delete'},
+        );
+    };
+
+    deletePublicLdapCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/certificate/public`,
+            {method: 'delete'},
+        );
+    };
+
+    deletePrivateLdapCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/ldap/certificate/private`,
             {method: 'delete'},
         );
     };
@@ -3200,14 +3275,14 @@ export default class Client4 {
     }
 
     getBotsIncludeDeleted = (page = 0, perPage = PER_PAGE_DEFAULT) => {
-        return this.doFetch<Bot>(
+        return this.doFetch<Bot[]>(
             `${this.getBotsRoute()}${buildQueryString({include_deleted: true, page, per_page: perPage})}`,
             {method: 'get'},
         );
     }
 
     getBotsOrphaned = (page = 0, perPage = PER_PAGE_DEFAULT) => {
-        return this.doFetch<Bot>(
+        return this.doFetch<Bot[]>(
             `${this.getBotsRoute()}${buildQueryString({only_orphaned: true, page, per_page: perPage})}`,
             {method: 'get'},
         );
@@ -3232,6 +3307,65 @@ export default class Client4 {
             `${this.getBotRoute(botUserId)}/assign/${newOwnerId}`,
             {method: 'post'},
         );
+    }
+
+    // Cloud routes
+    getCloudProducts = () => {
+        return this.doFetch<Product[]>(
+            `${this.getCloudRoute()}/products`, {method: 'get'},
+        );
+    };
+
+    createPaymentMethod = async () => {
+        return this.doFetch(
+            `${this.getCloudRoute()}/payment`,
+            {method: 'post'},
+        );
+    }
+
+    getCloudCustomer = () => {
+        return this.doFetch<CloudCustomer>(
+            `${this.getCloudRoute()}/customer`, {method: 'get'},
+        );
+    }
+
+    updateCloudCustomer = (customerPatch: CloudCustomerPatch) => {
+        return this.doFetch<CloudCustomer>(
+            `${this.getCloudRoute()}/customer`,
+            {method: 'put', body: JSON.stringify(customerPatch)},
+        );
+    }
+
+    updateCloudCustomerAddress = (address: Address) => {
+        return this.doFetch<CloudCustomer>(
+            `${this.getCloudRoute()}/customer/address`,
+            {method: 'put', body: JSON.stringify(address)},
+        );
+    }
+
+    confirmPaymentMethod = async (stripeSetupIntentID: string) => {
+        return this.doFetch(
+            `${this.getCloudRoute()}/payment/confirm`,
+            {method: 'post', body: JSON.stringify({stripe_setup_intent_id: stripeSetupIntentID})},
+        );
+    }
+
+    getSubscription = () => {
+        return this.doFetch<Subscription>(
+            `${this.getCloudRoute()}/subscription`,
+            {method: 'get'},
+        );
+    }
+
+    getInvoices = () => {
+        return this.doFetch<Invoice[]>(
+            `${this.getCloudRoute()}/subscription/invoices`,
+            {method: 'get'},
+        );
+    }
+
+    getInvoicePdfUrl = (invoiceId: string) => {
+        return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
     }
 
     teamMembersMinusGroupMembers = (teamID: string, groupIDs: string[], page: number, perPage: number) => {
@@ -3271,6 +3405,22 @@ export default class Client4 {
             request,
         );
     };
+
+    getInProductNotices = (teamId: string, client: string, clientVersion: string) => {
+        return this.doFetch<ProductNotices>(
+            `${this.getNoticesRoute()}/${teamId}?client=${client}&clientVersion=${clientVersion}`,
+            {method: 'get'},
+        );
+    };
+
+    updateNoticesAsViewed = (noticeIds: string[]) => {
+        // Only one notice is marked as viewed at a time so using 0 index
+        this.trackEvent('ui', `notice_seen_${noticeIds[0]}`);
+        return this.doFetch<StatusOK>(
+            `${this.getNoticesRoute()}/view`,
+            {method: 'put', body: JSON.stringify(noticeIds)},
+        );
+    }
 
     // Client Helpers
 
@@ -3335,31 +3485,17 @@ export default class Client4 {
     };
 
     trackEvent(category: string, event: string, props?: any) {
-        if (!this.isRudderKeySet) {
-            return;
+        if (this.telemetryHandler) {
+            const userRoles = this.userRoles && isSystemAdmin(this.userRoles) ? 'system_admin, system_user' : 'system_user';
+            this.telemetryHandler.trackEvent(this.userId, userRoles, category, event, props);
         }
+    }
 
-        const properties = Object.assign({
-            category,
-            type: event,
-            user_actual_role: this.userRoles && isSystemAdmin(this.userRoles) ? 'system_admin, system_user' : 'system_user',
-            user_actual_id: this.userId,
-        }, props);
-        const options = {
-            context: {
-                ip: '0.0.0.0',
-            },
-            page: {
-                path: '',
-                referrer: '',
-                search: '',
-                title: '',
-                url: '',
-            },
-            anonymousId: '00000000000000000000000000',
-        };
-
-        rudderAnalytics.track('event', properties, options);
+    pageVisited(category: string, name: string) {
+        if (this.telemetryHandler) {
+            const userRoles = this.userRoles && isSystemAdmin(this.userRoles) ? 'system_admin, system_user' : 'system_user';
+            this.telemetryHandler.pageVisited(this.userId, userRoles, category, name);
+        }
     }
 }
 

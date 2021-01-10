@@ -79,7 +79,7 @@ export function getFavoritesPreferences(state: GlobalState) {
     return favorites.filter((f) => f.value === 'true').map((f) => f.name);
 }
 
-export const getVisibleTeammate: (state: GlobalState) => $ID<UserProfile>[] = createSelector(
+export const getVisibleTeammate: (state: GlobalState) => Array<$ID<UserProfile>> = createSelector(
     getDirectShowPreferences,
     (direct) => {
         return direct.filter((dm) => dm.value === 'true' && dm.name).map((dm) => dm.name);
@@ -259,6 +259,8 @@ export const getNewSidebarPreference: (state: GlobalState) => boolean = createSe
         switch (globalSetting) {
         case General.DISABLED:
             return false;
+        case General.ALWAYS_ON:
+            return true;
         case General.DEFAULT_ON:
             return userSetting ? (userSetting === 'true') : true;
         case General.DEFAULT_OFF:

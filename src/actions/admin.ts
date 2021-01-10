@@ -5,7 +5,7 @@ import {General} from '../constants';
 import {Client4} from 'client';
 
 import {Action, ActionFunc, batchActions, DispatchFunc, GetStateFunc} from 'types/actions';
-import {Job} from 'types/jobs';
+import {Compliance} from 'types/compliance';
 import {GroupSearchOpts} from 'types/groups';
 
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -130,7 +130,7 @@ export function recycleDatabase(): ActionFunc {
     });
 }
 
-export function createComplianceReport(job: Job): ActionFunc {
+export function createComplianceReport(job: Partial<Compliance>): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.createComplianceReport,
         onRequest: AdminTypes.CREATE_COMPLIANCE_REQUEST,
@@ -319,6 +319,26 @@ export function uploadPrivateSamlCertificate(fileData: File): ActionFunc {
     });
 }
 
+export function uploadPublicLdapCertificate(fileData: File): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.uploadPublicLdapCertificate,
+        onSuccess: AdminTypes.UPLOAD_LDAP_PUBLIC_SUCCESS,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function uploadPrivateLdapCertificate(fileData: File): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.uploadPrivateLdapCertificate,
+        onSuccess: AdminTypes.UPLOAD_LDAP_PRIVATE_SUCCESS,
+        params: [
+            fileData,
+        ],
+    });
+}
+
 export function uploadIdpSamlCertificate(fileData: File): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.uploadIdpSamlCertificate,
@@ -346,6 +366,20 @@ export function removePrivateSamlCertificate(): ActionFunc {
         onRequest: AdminTypes.DELETE_SAML_PRIVATE_REQUEST,
         onSuccess: AdminTypes.DELETE_SAML_PRIVATE_SUCCESS,
         onFailure: AdminTypes.DELETE_SAML_PRIVATE_FAILURE,
+    });
+}
+
+export function removePublicLdapCertificate(): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.deletePublicLdapCertificate,
+        onSuccess: AdminTypes.DELETE_LDAP_PUBLIC_SUCCESS,
+    });
+}
+
+export function removePrivateLdapCertificate(): ActionFunc {
+    return bindClientFunc({
+        clientFunc: Client4.deletePrivateLdapCertificate,
+        onSuccess: AdminTypes.DELETE_LDAP_PRIVATE_SUCCESS,
     });
 }
 

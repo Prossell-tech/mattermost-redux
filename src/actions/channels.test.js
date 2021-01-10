@@ -13,6 +13,7 @@ import {Client4} from 'client';
 
 import {General, RequestStatus, Preferences, Permissions} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
+import {MarkUnread} from '../constants/channels';
 
 import TestHelper from 'test/test_helper';
 import configureStore from 'test/test_store';
@@ -366,7 +367,7 @@ describe('Actions.Channels', () => {
 
     it('updateChannelNotifyProps', async () => {
         const notifyProps = {
-            mark_unread: 'mention',
+            mark_unread: MarkUnread.MENTION,
             desktop: 'none',
         };
 
@@ -393,7 +394,7 @@ describe('Actions.Channels', () => {
         const members = store.getState().entities.channels.myMembers;
         const member = members[TestHelper.basicChannel.id];
         assert.ok(member);
-        assert.equal(member.notify_props.mark_unread, 'mention');
+        assert.equal(member.notify_props.mark_unread, MarkUnread.MENTION);
         assert.equal(member.notify_props.desktop, 'none');
     });
 
@@ -785,7 +786,7 @@ describe('Actions.Channels', () => {
                 },
             });
 
-            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [TestHelper.generateId()]));
+            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [TestHelper.generateId()], false));
 
             const state = store.getState();
             assert.equal(state.entities.channels.channels[channelId].total_msg_count, 11);
@@ -821,7 +822,7 @@ describe('Actions.Channels', () => {
                 },
             });
 
-            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [userId]));
+            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [userId], false));
 
             const state = store.getState();
             assert.equal(state.entities.channels.channels[channelId].total_msg_count, 11);
@@ -843,7 +844,7 @@ describe('Actions.Channels', () => {
                             [channelId]: {team_id: teamId, total_msg_count: 10},
                         },
                         myMembers: {
-                            [channelId]: {msg_count: 10, mention_count: 0, notify_props: {mark_unread: General.MENTION}},
+                            [channelId]: {msg_count: 10, mention_count: 0, notify_props: {mark_unread: MarkUnread.MENTION}},
                         },
                     },
                     teams: {
@@ -857,7 +858,7 @@ describe('Actions.Channels', () => {
                 },
             });
 
-            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [TestHelper.generateId()]));
+            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [TestHelper.generateId()], false));
 
             const state = store.getState();
             assert.equal(state.entities.channels.channels[channelId].total_msg_count, 11);
@@ -879,7 +880,7 @@ describe('Actions.Channels', () => {
                             [channelId]: {team_id: teamId, total_msg_count: 10},
                         },
                         myMembers: {
-                            [channelId]: {msg_count: 10, mention_count: 0, notify_props: {mark_unread: General.MENTION}},
+                            [channelId]: {msg_count: 10, mention_count: 0, notify_props: {mark_unread: MarkUnread.MENTION}},
                         },
                     },
                     teams: {
@@ -893,7 +894,7 @@ describe('Actions.Channels', () => {
                 },
             });
 
-            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [userId]));
+            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [userId], false));
 
             const state = store.getState();
             assert.equal(state.entities.channels.channels[channelId].total_msg_count, 11);
@@ -901,6 +902,42 @@ describe('Actions.Channels', () => {
             assert.equal(state.entities.channels.myMembers[channelId].mention_count, 1);
             assert.equal(state.entities.teams.myMembers[teamId].msg_count, 0);
             assert.equal(state.entities.teams.myMembers[teamId].mention_count, 1);
+        });
+
+        it('channel member should not be updated if it has already been fetched', async () => {
+            const teamId = TestHelper.generateId();
+            const channelId = TestHelper.generateId();
+            const userId = TestHelper.generateId();
+
+            store = await configureStore({
+                entities: {
+                    channels: {
+                        channels: {
+                            [channelId]: {team_id: teamId, total_msg_count: 8},
+                        },
+                        myMembers: {
+                            [channelId]: {msg_count: 5, mention_count: 2},
+                        },
+                    },
+                    teams: {
+                        myMembers: {
+                            [teamId]: {msg_count: 2, mention_count: 1},
+                        },
+                    },
+                    users: {
+                        currentUserId: userId,
+                    },
+                },
+            });
+
+            store.dispatch(Actions.markChannelAsUnread(teamId, channelId, [userId], true));
+
+            const state = store.getState();
+            assert.equal(state.entities.channels.channels[channelId].total_msg_count, 8);
+            assert.equal(state.entities.channels.myMembers[channelId].msg_count, 5);
+            assert.equal(state.entities.channels.myMembers[channelId].mention_count, 2);
+            assert.equal(state.entities.teams.myMembers[teamId].msg_count, 3);
+            assert.equal(state.entities.teams.myMembers[teamId].mention_count, 2);
         });
     });
 

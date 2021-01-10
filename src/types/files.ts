@@ -17,10 +17,11 @@ export type FileInfo = {
     height: number;
     has_preview_image: boolean;
     clientId: string;
+    post_id?: string;
 };
 export type FilesState = {
     files: Dictionary<FileInfo>;
-    fileIdsByPostId: Dictionary<Array<string>>;
+    fileIdsByPostId: Dictionary<string[]>;
     filePublicLink?: string;
 };
 

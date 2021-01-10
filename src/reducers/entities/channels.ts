@@ -1,11 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
 import {combineReducers} from 'redux';
+
 import {ChannelTypes, UserTypes, SchemeTypes, GroupTypes, PostTypes} from 'action_types';
+
 import {General} from '../../constants';
+import {MarkUnread} from 'constants/channels';
+
 import {GenericAction} from 'types/actions';
-import {Channel, ChannelMembership, ChannelStats, ChannelMemberCountByGroup, ChannelMemberCountsByGroup} from 'types/channels';
-import {RelationOneToMany, RelationOneToOne, IDMappedObjects, UserIDMappedObjects} from 'types/utilities';
+import {
+    Channel,
+    ChannelMembership,
+    ChannelStats,
+    ChannelMemberCountByGroup,
+    ChannelMemberCountsByGroup,
+} from 'types/channels';
+import {
+    RelationOneToMany,
+    RelationOneToOne,
+    IDMappedObjects,
+    UserIDMappedObjects,
+} from 'types/utilities';
+
 import {Team} from 'types/teams';
 
 function removeMemberFromChannels(state: RelationOneToOne<Channel, UserIDMappedObjects<ChannelMembership>>, action: GenericAction) {
@@ -188,7 +205,7 @@ function channels(state: IDMappedObjects<Channel> = {}, action: GenericAction) {
 
     case ChannelTypes.RECEIVED_MY_CHANNELS_WITH_MEMBERS: { // Used by the mobile app
         const nextState = {...state};
-        const myChannels: Array<Channel> = action.data.channels;
+        const myChannels: Channel[] = action.data.channels;
         let hasNewValues = false;
 
         if (myChannels && myChannels.length) {
@@ -276,8 +293,31 @@ function myMembers(state: RelationOneToOne<Channel, ChannelMembership> = {}, act
             [action.data.channel_id]: member,
         };
     }
+    case ChannelTypes.SET_CHANNEL_MUTED: {
+        const {channelId, muted} = action.data;
+
+        if (!state[channelId]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [channelId]: {
+                ...state[channelId],
+                notify_props: {
+                    ...state[channelId].notify_props,
+                    mark_unread: muted ? MarkUnread.MENTION : MarkUnread.ALL,
+                },
+            },
+        };
+    }
     case ChannelTypes.INCREMENT_UNREAD_MSG_COUNT: {
-        const {channelId, amount, onlyMentions} = action.data;
+        const {
+            channelId,
+            amount,
+            onlyMentions,
+            fetchedChannelMember,
+        } = action.data;
         const member = state[channelId];
 
         if (!member) {
@@ -287,6 +327,11 @@ function myMembers(state: RelationOneToOne<Channel, ChannelMembership> = {}, act
 
         if (!onlyMentions) {
             // Incrementing the msg_count marks the channel as read, so don't do that if these posts should be unread
+            return state;
+        }
+
+        if (fetchedChannelMember) {
+            // We've already updated the channel member with the correct msg_count
             return state;
         }
 
@@ -317,11 +362,20 @@ function myMembers(state: RelationOneToOne<Channel, ChannelMembership> = {}, act
         };
     }
     case ChannelTypes.INCREMENT_UNREAD_MENTION_COUNT: {
-        const {channelId, amount} = action.data;
+        const {
+            channelId,
+            amount,
+            fetchedChannelMember,
+        } = action.data;
         const member = state[channelId];
 
         if (!member) {
             // Don't keep track of unread posts until we've loaded the actual channel member
+            return state;
+        }
+
+        if (fetchedChannelMember) {
+            // We've already updated the channel member with the correct msg_count
             return state;
         }
 

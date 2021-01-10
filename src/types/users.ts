@@ -56,11 +56,15 @@ export type UserProfile = {
     terms_of_service_create_at: number;
 };
 
+export type UserProfileWithLastViewAt = UserProfile & {
+    last_viewed_at: number;
+};
+
 export type UsersState = {
     currentUserId: string;
     isManualStatus: RelationOneToOne<UserProfile, boolean>;
-    mySessions: Array<Session>;
-    myAudits: Array<Audit>;
+    mySessions: Session[];
+    myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
     profilesInTeam: RelationOneToMany<Team, UserProfile>;
     profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
@@ -71,6 +75,7 @@ export type UsersState = {
     statuses: RelationOneToOne<UserProfile, string>;
     stats: RelationOneToOne<UserProfile, UsersStats>;
     filteredStats?: UsersStats;
+    myUserAccessTokens: Dictionary<UserAccessToken>;
 };
 
 export type UserTimezone = {

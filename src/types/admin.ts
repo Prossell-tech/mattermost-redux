@@ -11,8 +11,13 @@ import {Team} from './teams';
 import {UserAccessToken, UserProfile} from './users';
 import {Dictionary, RelationOneToOne} from './utilities';
 
+export type ConsoleAccess = {
+    read: Record<string, boolean>;
+    write: Record<string, boolean>;
+}
+
 export type AdminState = {
-    logs: Array<string>;
+    logs: string[];
     audits: Dictionary<Audit>;
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
@@ -24,7 +29,7 @@ export type AdminState = {
     samlCertStatus?: SamlCertificateStatus;
     analytics?: Dictionary<number | AnalyticsRow[]>;
     teamAnalytics?: RelationOneToOne<Team, Dictionary<number | AnalyticsRow[]>>;
-    userAccessTokensForUser?: RelationOneToOne<UserProfile, Dictionary<UserAccessToken>>;
+    userAccessTokensByUser?: RelationOneToOne<UserProfile, Dictionary<UserAccessToken>>;
     plugins?: Dictionary<PluginRedux>;
     pluginStatuses?: Dictionary<PluginStatusRedux>;
     samlMetadataResponse?: SamlMetadataResponse;

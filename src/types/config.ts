@@ -28,6 +28,7 @@ export type ClientConfig = {
     CustomTermsOfServiceId: string;
     CustomTermsOfServiceReAcceptancePeriod: string;
     CustomUrlSchemes: string;
+    CWSUrl: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
     DataRetentionFileRetentionDays: string;
@@ -85,6 +86,7 @@ export type ClientConfig = {
     EnableSignUpWithGitLab: string;
     EnableSignUpWithGoogle: string;
     EnableSignUpWithOffice365: string;
+    EnableSignUpWithOpenId: string;
     EnableSVGs: string;
     EnableTesting: string;
     EnableThemeSelection: string;
@@ -99,6 +101,8 @@ export type ClientConfig = {
     ExperimentalChannelSidebarOrganization: string;
     ExperimentalClientSideCertCheck: string;
     ExperimentalClientSideCertEnable: string;
+    ExperimentalCloudBilling: string;
+    ExperimentalCloudUserLimit: string;
     ExperimentalDataPrefetch: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
@@ -120,6 +124,7 @@ export type ClientConfig = {
     IosAppDownloadLink: string;
     IosLatestVersion: string;
     IosMinVersion: string;
+    IsDefaultMarketplace: string;
     LdapFirstNameAttributeSet: string;
     LdapLastNameAttributeSet: string;
     LdapLoginButtonBorderColor: string;
@@ -128,10 +133,14 @@ export type ClientConfig = {
     LdapLoginFieldName: string;
     LdapNicknameAttributeSet: string;
     LdapPositionAttributeSet: string;
+    LdapPictureAttributeSet: string;
     LockTeammateNameDisplay: string;
+    ManagedResourcePaths: string;
     MaxFileSize: string;
     MaxNotificationsPerChannel: string;
     MinimumHashtagLength: string;
+    OpenIdButtonText: string;
+    OpenIdButtonColor: string;
     PasswordMinimumLength: string;
     PasswordRequireLowercase: string;
     PasswordRequireNumber: string;
@@ -210,6 +219,7 @@ export type LicenseFeatures = {
     guest_accounts_permissions?: boolean;
     id_loaded?: boolean;
     lock_teammate_name_display?: boolean;
+    cloud?: boolean;
     future_features?: boolean;
 };
 
@@ -524,6 +534,9 @@ export type SSOSettings = {
     AuthEndpoint: string;
     TokenEndpoint: string;
     UserApiEndpoint: string;
+    DiscoveryEndpoint: string;
+    ButtonText: string;
+    ButtonColor: string;
 };
 
 export type Office365Settings = {
@@ -534,6 +547,7 @@ export type Office365Settings = {
     AuthEndpoint: string;
     TokenEndpoint: string;
     UserApiEndpoint: string;
+    DiscoveryEndpoint: string;
     DirectoryId: string;
 };
 
@@ -589,6 +603,7 @@ export type SamlSettings = {
     Enable: boolean;
     EnableSyncWithLdap: boolean;
     EnableSyncWithLdapIncludeAuth: boolean;
+    IgnoreGuestsLdapSync: boolean;
     Verify: boolean;
     Encrypt: boolean;
     SignRequest: boolean;
@@ -657,6 +672,7 @@ export type ExperimentalSettings = {
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     UseNewSAMLLibrary: boolean;
+    CloudBilling: boolean;
 };
 
 export type AnalyticsSettings = {
@@ -759,6 +775,8 @@ export type ImageProxySettings = {
     RemoteImageProxyOptions: string;
 };
 
+export type FeatureFlags = Record<string, string>;
+
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
     TeamSettings: TeamSettings;
@@ -778,6 +796,7 @@ export type AdminConfig = {
     GitLabSettings: SSOSettings;
     GoogleSettings: SSOSettings;
     Office365Settings: Office365Settings;
+    OpenIdSettings: SSOSettings;
     LdapSettings: LdapSettings;
     ComplianceSettings: ComplianceSettings;
     LocalizationSettings: LocalizationSettings;
@@ -796,6 +815,7 @@ export type AdminConfig = {
     DisplaySettings: DisplaySettings;
     GuestAccountsSettings: GuestAccountsSettings;
     ImageProxySettings: ImageProxySettings;
+    FeatureFlags: FeatureFlags;
 };
 
 export type EnvironmentConfigSettings<T> = {
